@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Docker Visualization</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<h2>Docker Visualization</h2>
+<div id="content"></div>
+<div id="info"></div>
+<iframe width="900" height="400" id="logs" name="logs" frameborder="0"></iframe>
+<script src="d3.v3.min.js"></script>
+<script>
+    var width = 900,
+            height = 400;
+
+    var svg = d3.select("div#content").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+    var force = d3.layout.force()
+            .gravity(.05)
+            .distance(200)
+            .charge(-200)
+            .size([width, height]);
+
+
+//    (function doPoll() {
+        d3.json('/cluster', function (json) {
+
+            force
+                    .nodes(json.nodes)
+                    .links(json.links)
+                    .start();
+
+            var links = svg.selectAll(".link")
+                    .data(json.links)
+                    .enter().append("line")
+                    .attr("class", "link");
+
+            var nodes = svg.selectAll(".node")
+                    .data(json.nodes)
+                    .enter().append("g")
+                    .attr("class", "node")
+                    .on("dblclick", function (d, i) {
+                        var containerId = d.container.id;
+                        d3.xhr('/containers/' + containerId, "text/html", function (err, m) {
+                            if (err) return console.warn(error);
+                            d3.select("div#info").html(m.response);
+                            d3.select("#logs").attr("src", "about:blank");
+                        });
+                    })
+                    .call(force.drag);
+
+            nodes.append("image")
+                    .attr("xlink:href", function (d) {
+                        return d.image
+                    })
+                    .attr("x", -8)
+                    .attr("y", -8)
+                    .attr("width", 32)
+                    .attr("height", 32);
+
+
+            nodes.append("text")
+                    .attr("dx", 26)
+                    .attr("dy", ".75em")
+                    .text(function (d) {
+                        return d.name
+                    });
+
+            force.on("tick", function () {
+                links.attr("x1", function (d) {
+                    return d.source.x;
+                })
+                        .attr("y1", function (d) {
+                            return d.source.y;
+                        })
+                        .attr("x2", function (d) {
+                            return d.target.x;
+                        })
+                        .attr("y2", function (d) {
+                            return d.target.y;
+                        });
+
+                nodes.attr("transform", function (d) {
+                    return "translate(" + d.x + "," + d.y + ")";
+                });
+            });
+
+//            setTimeout(doPoll, 5000);
+        });
+//    }());
+
+    function deleteContainer(id) {
+        d3.xhr('/containers/' + id + "/delete", function (err, m) {
+            if (err) return console.warn(error);
+            location.reload();
+        });
+    }
+
+</script>
+</body>
+</html>

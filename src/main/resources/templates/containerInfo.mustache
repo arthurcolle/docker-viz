@@ -1,0 +1,42 @@
+<h3>Container Information</h3>
+<table>
+    <tr>
+        <td colspan="2"><a href="/containers/{{id}}/log" target="logs">View Logs</a> - <a href="javascript:void(0);" onclick="deleteContainer('{{id}}')">Delete Container</a></td>
+    </tr>
+    <tr>
+        <td>name:</td>
+        <td>{{name}}</td>
+    </tr>
+    <tr>
+        <td>id:</td>
+        <td>{{id}}</td>
+    </tr>
+    <tr>
+        <td>created:</td>
+        <td>{{created}}</td>
+    </tr>
+    <tr>
+        <td>running:</td>
+        <td>{{state.running}}</td>
+    </tr>
+    <tr>
+        <td>hostname:</td>
+        <td>{{config.hostname}}</td>
+    </tr>
+    <tr>
+        <td>ip address:</td>
+        <td>{{networkSettings.ipAddress}}</td>
+    </tr>
+    <tr>
+        <td>ports:</td>
+        <td>{{networkSettings.ports}}</td>
+    </tr>
+    <tr>
+        <td>env:</td>
+        <td>{{#config.env}}<div>{{.}}</div>{{/config.env}}</td>
+    </tr>
+    <tr>
+        <td>image:</td>
+        <td>{{config.image}}</td>
+    </tr>
+</table>
