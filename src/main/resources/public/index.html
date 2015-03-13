@@ -1,77 +1,171 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Docker Visualization</title>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="style.css"/>
+    <title>Animating Changes in Force Diagram</title>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <style>
+        body {
+            background-color: #eee;
+        }
+
+        .link {
+            stroke: #ccc;
+            stroke-width: 2px;
+        }
+
+        .node {
+            stroke: #ccc;
+            stroke-width: 2px;
+        }
+        .textClass {
+            stroke: #ccc;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: normal;
+            stroke-width: .5;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
-<h2>Docker Visualization</h2>
-<div id="content"></div>
-<div id="info"></div>
-<iframe width="900" height="400" id="logs" name="logs" frameborder="0"></iframe>
-<script src="d3.v3.min.js"></script>
+
 <script>
-    var width = 900,
-            height = 400;
+    var graph;
+    function myGraph() {
 
-    var svg = d3.select("div#content").append("svg")
-            .attr("width", width)
-            .attr("height", height);
+        // Add and remove elements on the graph object
+        this.addNode = function (id) {
+            nodes.push({"id": id});
+            update();
+        };
 
-    var force = d3.layout.force()
-            .gravity(.05)
-            .distance(200)
-            .charge(-200)
-            .size([width, height]);
+        this.removeNode = function (id) {
+            var i = 0;
+            var n = findNode(id);
+            while (i < links.length) {
+                if ((links[i]['source'] == n) || (links[i]['target'] == n)) {
+                    links.splice(i, 1);
+                }
+                else i++;
+            }
+            nodes.splice(findNodeIndex(id), 1);
+            update();
+        };
 
+        this.removeLink = function (source, target) {
+            for (var i = 0; i < links.length; i++) {
+                if (links[i].source.id == source && links[i].target.id == target) {
+                    links.splice(i, 1);
+                    break;
+                }
+            }
+            update();
+        };
 
-//    (function doPoll() {
-        d3.json('/cluster', function (json) {
+        this.removeallLinks = function () {
+            links.splice(0, links.length);
+            update();
+        };
 
-            force
-                    .nodes(json.nodes)
-                    .links(json.links)
-                    .start();
+        this.removeAllNodes = function () {
+            nodes.splice(0, links.length);
+            update();
+        };
 
-            var links = svg.selectAll(".link")
-                    .data(json.links)
-                    .enter().append("line")
-                    .attr("class", "link");
+        this.addLink = function (lnk) {
+            links.push({"source": findNode(lnk.source), "target": findNode(lnk.target), "value": lnk.value});
+            update();
+        };
 
-            var nodes = svg.selectAll(".node")
-                    .data(json.nodes)
-                    .enter().append("g")
-                    .attr("class", "node")
-                    .on("dblclick", function (d, i) {
-                        var containerId = d.container.id;
-                        d3.xhr('/containers/' + containerId, "text/html", function (err, m) {
-                            if (err) return console.warn(error);
-                            d3.select("div#info").html(m.response);
-                            d3.select("#logs").attr("src", "about:blank");
-                        });
-                    })
-                    .call(force.drag);
+        var findNode = function (id) {
+            for (var i in nodes) {
+                if (nodes[i]["id"] === id) return nodes[i];
+            }
+            ;
+        };
 
-            nodes.append("image")
-                    .attr("xlink:href", function (d) {
-                        return d.image
-                    })
-                    .attr("x", -8)
-                    .attr("y", -8)
-                    .attr("width", 32)
-                    .attr("height", 32);
+        var findNodeIndex = function (id) {
+            for (var i = 0; i < nodes.length; i++) {
+                if (nodes[i].id == id) {
+                    return i;
+                }
+            }
+            ;
+        };
 
+        // set up the D3 visualisation in the specified element
+        var w = 960,
+                h = 450;
 
-            nodes.append("text")
-                    .attr("dx", 26)
-                    .attr("dy", ".75em")
-                    .text(function (d) {
-                        return d.name
+        var vis = d3.select("body")
+                .append("svg:svg")
+                .attr("width", w)
+                .attr("height", h)
+                .attr("id", "svg")
+                .attr("pointer-events", "all")
+                .attr("viewBox", "0 0 " + w + " " + h)
+                .attr("perserveAspectRatio", "xMinYMid")
+                .append('svg:g');
+
+        var force = d3.layout.force();
+
+        var nodes = force.nodes(),
+                links = force.links();
+
+        var update = function () {
+            var link = vis.selectAll("line")
+                    .data(links, function (d) {
+                        return d.source.id + "-" + d.target.id;
                     });
 
+            link.enter().append("line")
+                    .attr("id", function (d) {
+                        return d.source.id + "-" + d.target.id;
+                    })
+                    .attr("stroke-width", function (d) {
+                        return d.value / 10;
+                    })
+                    .attr("class", "link");
+            link.append("title")
+                    .text(function (d) {
+                        return d.value;
+                    });
+            link.exit().remove();
+
+            var node = vis.selectAll("g.node")
+                    .data(nodes, function (d) {
+                        return d.id;
+                    });
+
+            var nodeEnter = node.enter().append("g")
+                    .attr("class", "node")
+                    .call(force.drag);
+
+            nodeEnter.append("svg:circle")
+                    .attr("r", 12)
+                    .attr("id", function (d) {
+                        return "Node;" + d.id;
+                    })
+                    .attr("class", "nodeStrokeClass")
+                    .attr("fill", "#ccc");
+
+            nodeEnter.append("svg:text")
+                    .attr("class", "textClass")
+                    .attr("x", 14)
+                    .attr("y", ".31em")
+                    .text(function (d) {
+                        return d.id;
+                    });
+
+            node.exit().remove();
+
             force.on("tick", function () {
-                links.attr("x1", function (d) {
+
+                node.attr("transform", function (d) {
+                    return "translate(" + d.x + "," + d.y + ")";
+                });
+
+                link.attr("x1", function (d) {
                     return d.source.x;
                 })
                         .attr("y1", function (d) {
@@ -83,22 +177,57 @@
                         .attr("y2", function (d) {
                             return d.target.y;
                         });
-
-                nodes.attr("transform", function (d) {
-                    return "translate(" + d.x + "," + d.y + ")";
-                });
             });
 
-//            setTimeout(doPoll, 5000);
-        });
-//    }());
+            // Restart the force layout.
+            force
+                    .gravity(.05)
+                    .distance(200)
+                    .charge(-200)
+                    .size([w, h])
+                    .start();
+        };
 
-    function deleteContainer(id) {
-        d3.xhr('/containers/' + id + "/delete", function (err, m) {
-            if (err) return console.warn(error);
-            location.reload();
+
+        // Make it all go
+        update();
+    }
+
+    function drawGraph() {
+
+        graph = new myGraph("#svgdiv");
+
+        d3.json('/cluster', function (c) {
+            var nodesToAdd = c.nodes;
+            for (var i = 0; i < nodesToAdd.length; i++) {
+                graph.addNode(nodesToAdd[i].name);
+            }
+
+            var linksToAdd = c.links;
+            for (var j = 0; j < linksToAdd.length; j++) {
+                graph.addLink(linksToAdd[j]);
+            }
+            keepNodesOnTop();
+        });
+
+    }
+
+    drawGraph();
+
+    // because of the way the network is created, nodes are created first, and links second,
+    // so the lines were on top of the nodes, this just reorders the DOM to put the svg:g on top
+    function keepNodesOnTop() {
+        $(".nodeStrokeClass").each(function( index ) {
+            var gnode = this.parentNode;
+            gnode.parentNode.appendChild(gnode);
         });
     }
+    function addNodes() {
+        d3.select("svg")
+                .remove();
+        drawGraph();
+    }
+
 
 </script>
 </body>

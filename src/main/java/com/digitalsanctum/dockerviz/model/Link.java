@@ -2,28 +2,28 @@ package com.digitalsanctum.dockerviz.model;
 
 public class Link {
 
-    private int source;
-    private int target;
-    private int value = 1;
+    private String source;
+    private String target;
+    private int value = 20;
 
-    public Link(int source, int target) {
+    public Link(String source, String target) {
         this.source = source;
         this.target = target;
     }
 
-    public int getSource() {
+    public String getSource() {
         return source;
     }
 
-    public void setSource(int source) {
+    public void setSource(String source) {
         this.source = source;
     }
 
-    public int getTarget() {
+    public String getTarget() {
         return target;
     }
 
-    public void setTarget(int target) {
+    public void setTarget(String target) {
         this.target = target;
     }
 
