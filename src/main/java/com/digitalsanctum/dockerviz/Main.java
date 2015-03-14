@@ -58,7 +58,9 @@ public class Main {
 
 
         get("/containers/:id/delete", (request, response) -> {
-            docker.removeContainer(request.params(":id"));
+            String id = request.params(":id");
+            docker.killContainer(id);
+            docker.removeContainer(id);
             return "ok";
         });
 
@@ -81,23 +83,20 @@ public class Main {
 
             Cluster c = new Cluster();
             for (Container container : containers) {
-                c.addNode(new Node(container));
-
-
-
+                Node node = new Node(container);
                 if (container.names().size() > 1) {
-                    String sourceName = container.names().get(0).substring(1);
-
                     List<String> names = container.names();
                     for (int i1 = 0; i1 < names.size(); i1++) {
                         if (i1 == 0) {
                             continue;
                         }
+                        String sourceName = container.names().get(0).substring(1);
                         String name = names.get(i1);
                         String targetName = name.substring(0, name.indexOf('/', 1)).substring(1);
                         c.addLink(new Link(sourceName, targetName));
                     }
                 }
+                c.addNode(node);
             }
             return c;
 

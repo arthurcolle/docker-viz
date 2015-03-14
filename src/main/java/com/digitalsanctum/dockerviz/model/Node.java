@@ -64,17 +64,10 @@ public class Node {
 
     private String imageFromContainer(Container container) {
         String image = container.image();
-        if (image.startsWith("jive/data")) {
-            return "data.png";
-        } else if (image.startsWith("jive/postgres")) {
-            return "postgres.gif";
-        } else if (image.startsWith("jive/doc")) {
-            return "libreoffice.png";
-        } else if (image.startsWith("jive/search")) {
-            return "search.png";
-        } else {
+        if (image.startsWith("jive/webapp")) {
             return "jive.png";
         }
+        return null;
     }
 
     @Override

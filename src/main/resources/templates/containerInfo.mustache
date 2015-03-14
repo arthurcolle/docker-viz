@@ -1,14 +1,7 @@
 <h3>Container Information</h3>
 <table>
     <tr>
-        <td colspan="2"><a href="/containers/{{id}}/log" target="logs">View Logs</a> - <a href="javascript:void(0);" onclick="deleteContainer('{{id}}')">Delete Container</a></td>
-    </tr>
-    <tr>
-        <td colspan="2">
-            <form action="/containers/{{id}}/exec" datatype="" method="post" target="logs">
-                <label for="cmd">Execute Command:</label><input id="cmd" type="text" name="cmd"/> <input type="submit" value="go"/>
-            </form>
-        </td>
+        <td colspan="2"><a href="/containers/{{id}}/log" target="logs">View Logs</a> - <a href="javascript:void(0);" onclick="deleteContainer('{{id}}')">Delete Container</a> <form action="/containers/{{id}}/exec" datatype="" method="post" target="logs"><label for="cmd">Execute Command:</label><input id="cmd" type="text" name="cmd"/> <input type="submit" value="go"/></form></td>
     </tr>
     <tr>
         <td>name:</td>
