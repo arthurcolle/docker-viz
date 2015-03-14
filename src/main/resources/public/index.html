@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Animating Changes in Force Diagram</title>
+    <title>Docker Force Diagram</title>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <style>
@@ -25,15 +25,29 @@
             stroke-width: .5;
             font-size: 14px;
         }
+
+        #controls {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11px;
+        }
+        #controls input {
+            width: 30px;
+        }
     </style>
 </head>
 <body>
-
+<div id="controls">interval:<input type="text" id="interval" value=""/> r:<input type="text" id="nodeRadius" value=""/> g:<input type="text" id="gravity" value=""/> distance:<input type="text" id="distance" value=""/> charge:<input type="text" id="charge" value=""/> <span id="numNodes"></span></div>
+<div id="graph"></div>
 <div id="info"></div>
 <iframe width="900" height="400" id="logs" name="logs" frameborder="0"></iframe>
-
 <script>
-    var graph;
+    var graph, nodeRadius=12, gravity = 0.5, distance = 100, charge = -100, interval = 10;
+    $("#gravity").val(gravity);
+    $("#distance").val(distance);
+    $("#charge").val(charge);
+    $("#nodeRadius").val(nodeRadius);
+    $("#interval").val(interval);
+
     function myGraph() {
 
         // Add and remove elements on the graph object
@@ -63,6 +77,10 @@
                 }
             }
             update();
+        };
+
+        this.updateCounts = function() {
+            $("#numNodes").text(nodes.length);
         };
 
         this.removeallLinks = function () {
@@ -97,9 +115,9 @@
         // set up the D3 visualisation in the specified element
         var w = 960,
                 h = 450,
-                r = 12;
+                nodeRadius = $("#nodeRadius").val();
 
-        var vis = d3.select("body")
+        var vis = d3.select("div#graph")
                 .append("svg:svg")
                 .attr("width", w)
                 .attr("height", h)
@@ -144,7 +162,7 @@
                     .call(force.drag);
 
             nodeEnter.append("svg:circle")
-                    .attr("r", r)
+                    .attr("r", $("#nodeRadius").val())
                     .attr("id", function (d) {
                         return "Node;" + d.id;
                     })
@@ -167,8 +185,8 @@
                     return "translate(" + d.x + "," + d.y + ")";
                 });
 
-                node.attr("cx", function(d) { return d.x = Math.max(r, Math.min(w - r, d.x)); })
-                        .attr("cy", function(d) { return d.y = Math.max(r, Math.min(h - r, d.y)); });
+                node.attr("cx", function(d) { return d.x = Math.max(nodeRadius, Math.min(w - nodeRadius, d.x)); })
+                        .attr("cy", function(d) { return d.y = Math.max(nodeRadius, Math.min(h - nodeRadius, d.y)); });
 
                 link.attr("x1", function (d) {
                     return d.source.x;
@@ -186,9 +204,9 @@
 
             // Restart the force layout.
             force
-                    .gravity(.05)
-                    .distance(200)
-                    .charge(-200)
+                    .gravity($("#gravity").val())
+                    .distance($("#distance").val())
+                    .charge($("#charge").val())
                     .size([w, h])
                     .start();
         };
@@ -202,9 +220,13 @@
         graph = new myGraph("#svgdiv");
     }
 
-    function drawGraph() {
+    function updateGraph() {
+        graph = new myGraph("#svgdiv");
 
         d3.json('/cluster', function (c) {
+            if (!c) {
+                return;
+            }
             var nodesToAdd = c.nodes;
             for (var i = 0; i < nodesToAdd.length; i++) {
                 graph.addNode(nodesToAdd[i].name);
@@ -215,16 +237,19 @@
                 graph.addLink(linksToAdd[j]);
             }
             keepNodesOnTop();
+            graph.updateCounts();
         });
     }
 
-    initGraph();
-    drawGraph();
+//    initGraph();
+//    updateGraph();
+    updateGraph();
     setInterval(function() {
+        /*graph.removeAllNodes();
         graph.removeallLinks();
-        graph.removeAllNodes();
-        drawGraph();
-    }, 5000);
+        updateGraph();*/
+        addNodes();
+    }, $("#interval").val() * 1000);
 
     // because of the way the network is created, nodes are created first, and links second,
     // so the lines were on top of the nodes, this just reorders the DOM to put the svg:g on top
@@ -237,7 +262,7 @@
     function addNodes() {
         d3.select("svg")
                 .remove();
-        drawGraph();
+        updateGraph();
     }
 
 
