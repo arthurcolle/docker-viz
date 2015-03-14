@@ -77,7 +77,6 @@ public class Main {
 
         get("/cluster", (request, response) -> {
 
-
             List<Container> containers = docker.listContainers();
 
             Cluster c = new Cluster();
@@ -103,36 +102,5 @@ public class Main {
             return c;
 
         }, new JsonTransformer());
-
-
-        /*get("/cluster", (request, response) -> {
-
-            Cluster c = new Cluster();
-            List<Container> containers = docker.listContainers();
-
-            Map<String, Integer> containerMap = new HashMap<>(containers.size());
-            for (int i = 0; i < containers.size(); i++) {
-                Container container = containers.get(i);
-                containerMap.put(container.names().get(0), i);
-            }
-
-            for (int i = 0; i < containers.size(); i++) {
-                Container container = containers.get(i);
-                c.addNode(new Node(container));
-                if (container.names().size() > 1) {
-                    List<String> names = container.names();
-                    for (int i1 = 0; i1 < names.size(); i1++) {
-                        if (i1 == 0) {
-                            continue;
-                        }
-                        String name = names.get(i1);
-                        String targetName = name.substring(0, name.indexOf('/', 1));
-                        c.addLink(new Link(i, containerMap.get(targetName)));
-                    }
-                }
-            }
-            return c;
-
-        }, new JsonTransformer());*/
     }
 }

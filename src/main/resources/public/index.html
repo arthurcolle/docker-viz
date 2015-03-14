@@ -29,6 +29,9 @@
 </head>
 <body>
 
+<div id="info"></div>
+<iframe width="900" height="400" id="logs" name="logs" frameborder="0"></iframe>
+
 <script>
     var graph;
     function myGraph() {
@@ -81,7 +84,6 @@
             for (var i in nodes) {
                 if (nodes[i]["id"] === id) return nodes[i];
             }
-            ;
         };
 
         var findNodeIndex = function (id) {
@@ -90,12 +92,12 @@
                     return i;
                 }
             }
-            ;
         };
 
         // set up the D3 visualisation in the specified element
         var w = 960,
-                h = 450;
+                h = 450,
+                r = 12;
 
         var vis = d3.select("body")
                 .append("svg:svg")
@@ -142,7 +144,7 @@
                     .call(force.drag);
 
             nodeEnter.append("svg:circle")
-                    .attr("r", 12)
+                    .attr("r", r)
                     .attr("id", function (d) {
                         return "Node;" + d.id;
                     })
@@ -164,6 +166,9 @@
                 node.attr("transform", function (d) {
                     return "translate(" + d.x + "," + d.y + ")";
                 });
+
+                node.attr("cx", function(d) { return d.x = Math.max(r, Math.min(w - r, d.x)); })
+                        .attr("cy", function(d) { return d.y = Math.max(r, Math.min(h - r, d.y)); });
 
                 link.attr("x1", function (d) {
                     return d.source.x;
@@ -193,9 +198,11 @@
         update();
     }
 
-    function drawGraph() {
-
+    function initGraph() {
         graph = new myGraph("#svgdiv");
+    }
+
+    function drawGraph() {
 
         d3.json('/cluster', function (c) {
             var nodesToAdd = c.nodes;
@@ -209,10 +216,15 @@
             }
             keepNodesOnTop();
         });
-
     }
 
+    initGraph();
     drawGraph();
+    setInterval(function() {
+        graph.removeallLinks();
+        graph.removeAllNodes();
+        drawGraph();
+    }, 5000);
 
     // because of the way the network is created, nodes are created first, and links second,
     // so the lines were on top of the nodes, this just reorders the DOM to put the svg:g on top
