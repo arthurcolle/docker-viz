@@ -1,8 +1,8 @@
 var graph,
     nodeRadius=15,
-    gravity = 0.2,
-    distance = 200,
-    charge = -450,
+    gravity = 0.1,
+    distance = 150,
+    charge = -500,
     interval = 7;
 
 $("#gravity").val(gravity);
@@ -76,7 +76,7 @@ function myGraph() {
     };
 
     // set up the D3 visualisation in the specified element
-    var w = 600,
+    var w = 960,
         h = 400;
 
     var vis = d3.select("div#graph")
@@ -143,12 +143,7 @@ function myGraph() {
 
         // double-click node to inspect
         nodeEnter.on("dblclick", function (d) {
-            var containerId = d.container.id;
-            d3.xhr('/containers/' + containerId, "text/html", function (err, m) {
-                if (err) return console.warn(err);
-                d3.select("div#info").html(m.response);
-                d3.select("#logs").attr("src", "about:blank");
-            });
+            containerInfo(d.container.id);
         });
 
         nodeEnter.append("svg:text")
@@ -260,9 +255,53 @@ function deleteContainer(id) {
 }
 
 function clearLogs() {
-    $("#logs").attr("src", "about:blank");
+    $("#logs").html('');
+    $("#logs").hide();
 }
 
 function clearInfo() {
     $("#info").html('');
+}
+
+function createContainer() {
+    paused = true;
+    d3.xhr('/containers')
+        .header("Content-Type", "application/json")
+        .post('', function(err, d){
+            if (!err) {
+                containerInfo(d.response);
+                updateGraph();
+            }
+        }
+    );
+    paused = false;
+}
+
+function containerInfo(id) {
+    d3.xhr('/containers/' + id, "text/html", function (err, m) {
+        if (err) return console.warn(err);
+        d3.select("div#info").html(m.response);
+        clearLogs();
+    });
+}
+
+function containerLogs(id) {
+    d3.xhr('/containers/' + id + '/logs', "text/html", function (err, d) {
+        if (err) return console.warn(err);
+        d3.select("div#logs").html(d.response);
+        $("#logs").show();
+    });
+}
+
+function containerExec(id) {
+    var cmd = $("input#cmd").val();
+    d3.xhr('/containers/' + id + '/exec')
+        .header("Content-Type", "application/json")
+        .post(JSON.stringify({'cmd': cmd}), function(err, d){
+            if (!err) {
+                //d3.select("div#logs").html(d.response);
+                $("div#logs").html(d.response).show();
+            }
+        }
+    );
 }

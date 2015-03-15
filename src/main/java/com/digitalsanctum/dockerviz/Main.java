@@ -1,17 +1,20 @@
 package com.digitalsanctum.dockerviz;
 
-import com.digitalsanctum.dockerviz.model.Cluster;
-import com.digitalsanctum.dockerviz.model.Link;
-import com.digitalsanctum.dockerviz.model.Node;
+import com.digitalsanctum.dockerviz.model.*;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerException;
 import com.spotify.docker.client.LogStream;
 import com.spotify.docker.client.messages.Container;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerInfo;
 import spark.ModelAndView;
 import spark.template.mustache.MustacheTemplateEngine;
 
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
@@ -32,29 +35,57 @@ public class Main {
 
         staticFileLocation("/public");
 
-
-        get("/containers/:id/log", (request, response) -> {
-            LogStream logStream = docker.logs(request.params(":id"), DockerClient.LogsParameter.STDOUT);
-            String log = logStream.readFully();
-            logStream.close();
-            return "<pre>" + log + "</pre>";
+        post("/containers", (request, response) -> {
+            ContainerConfig config = ContainerConfig.builder()
+                    .image("jive/data")
+                    .build();
+            ContainerCreation creation = docker.createContainer(config);
+            String id = creation.id();
+            docker.startContainer(id);
+            return id;
         });
 
-
-        post("/containers/:id/exec", (request, response) -> {
-            String[] cmd = request.queryParams("cmd").split(" ");
-
-            // todo handle quoted cmd args like runuser -l jive -c "jive status -v"
-
-            String execId = docker.execCreate(request.params(":id"), cmd,
-                    DockerClient.ExecParameter.STDOUT, DockerClient.ExecParameter.STDERR);
-            String result = "";
-            try (LogStream stream = docker.execStart(execId)) {
-                result = stream.readFully();
+        get("/containers/:id/logs", (request, response) -> {
+            LogStream logStream = null;
+            try {
+                logStream = docker.logs(request.params(":id"), DockerClient.LogsParameter.STDOUT);
+            } catch (DockerException | InterruptedException e) {
+                e.printStackTrace();
+            }
+            String log = null;
+            if (logStream != null) {
+                log = logStream.readFully();
+                logStream.close();
             }
 
-            return "<pre>" + result + "</pre>";
-        });
+            return new ModelAndView(new LogResponse(log), "logs.mustache");
+        }, new MustacheTemplateEngine());
+
+
+        post("/containers/:id/exec", "application/json", (request, response) -> {
+
+            Gson gson = new Gson();
+            CommandRequest commandRequest = gson.fromJson(request.body(), CommandRequest.class);
+            // todo handle quoted cmd args like runuser -l jive -c "jive status -v"
+
+            String execId = null;
+            try {
+                execId = docker.execCreate(request.params(":id"), new String[]{commandRequest.getCmd()},
+                        DockerClient.ExecParameter.STDOUT, DockerClient.ExecParameter.STDERR);
+            } catch (DockerException | InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            String result = "";
+            try {
+                LogStream stream = docker.execStart(execId);
+                result = stream.readFully();
+            } catch (InterruptedException | DockerException e) {
+                e.printStackTrace();
+            }
+
+            return new ModelAndView(new LogResponse(result), "logs.mustache");
+        }, new MustacheTemplateEngine());
 
 
         get("/containers/:id/delete", (request, response) -> {

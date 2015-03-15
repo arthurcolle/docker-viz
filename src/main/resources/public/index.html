@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Docker Force Diagram</title>
+    <title>Docker Visualization</title>
     <script src="scripts/d3.min.js"></script>
     <script src="scripts/jquery-2.1.4.min.js"></script>
     <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
-<div id="controls">
-    <label for="gravity">g:</label><input type="text" id="gravity" value=""/>
-    <label for="distance">distance:</label><input type="text" id="distance" value=""/>
-    <label for="charge">charge:</label><input type="text" id="charge" value=""/> Number of containers: <span id="numNodes"></span>
+<h3>Docker Visualization</h3>
+<div>
+    <span id="controls">
+        <label for="gravity">g:</label><input type="text" id="gravity" value=""/>
+        <label for="distance">distance:</label><input type="text" id="distance" value=""/>
+        <label for="charge">charge:</label><input type="text" id="charge" value=""/> Number of containers: <span id="numNodes"></span>
+    </span>
+    <input type="button" value="Create a container" onclick="createContainer()"/>
 </div>
-<table width="100%">
-    <tr>
-        <td valign="top"><div id="graph"></div></td>
-        <td valign="top"><div id="info"></div></td>
-    </tr>
-</table>
-<iframe width="100%" height="250" id="logs" name="logs" frameborder="0"></iframe>
+<div id="graph"></div>
+<div id="info"></div>
+<div id="logs" style="display: none"></div>
 <script src="scripts/app.js"></script>
 </body>
 </html>
