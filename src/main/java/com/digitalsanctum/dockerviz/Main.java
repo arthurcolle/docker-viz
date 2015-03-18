@@ -2,7 +2,6 @@ package com.digitalsanctum.dockerviz;
 
 import com.digitalsanctum.dockerviz.model.*;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerException;
@@ -11,14 +10,12 @@ import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.ContainerInfo;
+import org.apache.commons.lang.StringUtils;
 import spark.ModelAndView;
 import spark.template.mustache.MustacheTemplateEngine;
 
-import java.lang.reflect.Type;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static spark.Spark.get;
 import static spark.Spark.post;
@@ -115,16 +112,16 @@ public class Main {
             Cluster c = new Cluster();
             for (Container container : containers) {
                 Node node = new Node(container);
-                if (container.names().size() > 1) {
-                    List<String> names = container.names();
-                    for (int i1 = 0; i1 < names.size(); i1++) {
-                        if (i1 == 0) {
-                            continue;
+                List<String> names = container.names();
+                if (names.size() > 1) {
+                    String source = node.getName();
+                    for (String name : names) {
+                        String target = null;
+                        int matches = StringUtils.countMatches(name, "/");
+                        if (matches == 2) {
+                            target = name.substring(1, name.indexOf("/", 1));
+                            c.addLink(new Link(source, target));
                         }
-                        String sourceName = container.names().get(0).substring(1);
-                        String name = names.get(i1);
-                        String targetName = name.substring(0, name.indexOf('/', 1)).substring(1);
-                        c.addLink(new Link(sourceName, targetName));
                     }
                 }
                 c.addNode(node);

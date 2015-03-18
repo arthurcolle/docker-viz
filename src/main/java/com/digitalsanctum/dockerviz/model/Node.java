@@ -1,6 +1,7 @@
 package com.digitalsanctum.dockerviz.model;
 
 import com.spotify.docker.client.messages.Container;
+import org.apache.commons.lang.StringUtils;
 
 public class Node {
 
@@ -12,7 +13,16 @@ public class Node {
 
     public Node(Container container) {
         this.container = container;
-        this.name = container.names().get(0).substring(1);
+        if (container.names().size() == 1) {
+            this.name = container.names().get(0).substring(1);
+        } else {
+            for (String containerName : container.names()) {
+                if (StringUtils.countMatches(containerName, "/") == 1) {
+                    this.name = containerName.substring(1);
+                    break;
+                }
+            }
+        }
         this.image = imageFromContainer(container);
     }
 
