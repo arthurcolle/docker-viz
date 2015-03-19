@@ -76,7 +76,7 @@ function myGraph() {
     };
 
     // set up the D3 visualisation in the specified element
-    var w = 960,
+    var w = 800,
         h = 400;
 
     var vis = d3.select("div#graph")
@@ -129,7 +129,7 @@ function myGraph() {
                 return "Node;" + d.name;
             })
             .attr("class", "nodeStrokeClass")
-            .attr("fill", "#54B6CC");
+            .attr("fill", "#03BFEC");
 
         /*nodeEnter.append("image")
          .attr("xlink:href", function (d) {

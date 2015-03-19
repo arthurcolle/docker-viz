@@ -15,6 +15,8 @@ RUN tar -xzf jdk-${JDK_VERSION}u${JDK_UPDATE_VERSION}-linux-x64.tar.gz && rm *.t
 ENV JAVA_HOME=/jdk1.${JDK_VERSION}.0_${JDK_UPDATE_VERSION}
 ENV PATH=$JAVA_HOME/bin:$PATH
 
+RUN rm $JAVA_HOME/*.zip
+
 ADD target/docker-viz .
 
 EXPOSE 4567

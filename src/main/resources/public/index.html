@@ -7,14 +7,15 @@
     <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
-<h3>Docker Visualization</h3>
-<div>
-    <span id="controls">
+<div id="header">
+    <div id="title">Docker Visualization</div>
+    <div id="controls">
         <label for="gravity">g:</label><input type="text" id="gravity" value=""/>
         <label for="distance">distance:</label><input type="text" id="distance" value=""/>
-        <label for="charge">charge:</label><input type="text" id="charge" value=""/> Number of containers: <span id="numNodes"></span>
-    </span>
-    <input type="button" value="Create a container" onclick="createContainer()"/>
+        <label for="charge">charge:</label><input type="text" id="charge" value=""/>
+        Number of containers: <span id="numNodes"></span>
+        <input type="button" value="Create a container" onclick="createContainer()"/>
+    </div>
 </div>
 <div id="graph"></div>
 <div id="info"></div>
