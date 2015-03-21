@@ -1,6 +1,6 @@
 language: java
 jdk: oraclejdk8
-install: "mvn clean package"
+script: "mvn clean package"
 artifacts:
   paths:
   - target/docker-viz
