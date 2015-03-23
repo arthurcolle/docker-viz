@@ -1,8 +1,17 @@
 language: java
 jdk: oraclejdk8
-script: "mvn clean package"
-deploy:
-  skip_cleanup: true
+script: mvn clean package
 artifacts:
   paths:
   - target/docker-viz
+deploy:
+  provider: s3
+  access_key_id: AKIAJW2HDA55PPB47DJQ
+  secret_access_key:
+    secure: bNT4Q4tlHsIjrdV/hyuHq15KoCEFV8Qx/1Oq2SRSidyZPPnGwUoyQr0dKsVe87//Z66ghHy0KdBADQ75kDQv75/fgFL80TUWWFBtghpXDpuJChFXeccQUBqkREMOonq6nAbNLkcWFIcjgNVIJ0kKybY6kv0NhLTRO/apXTYc/X4=
+  bucket: docker-viz-artifacts
+  local-dir: target
+  acl: public_read
+  skip_cleanup: true
+  on:
+    repo: digitalsanctum/docker-viz
