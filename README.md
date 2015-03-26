@@ -2,7 +2,7 @@
 Web based visualization of Docker containers
 
 
-![Docker Visualization Screenshot](/doc/docker-viz-ss.png?raw=true "Docker Visualization Screenshot")
+![Screenshot](docs/docker-viz-ss.png?raw=true)
 
 
 ## Build
