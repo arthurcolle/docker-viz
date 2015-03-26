@@ -17,7 +17,8 @@ ENV PATH=$JAVA_HOME/bin:$PATH
 
 RUN rm $JAVA_HOME/*.zip
 
-ADD target/docker-viz .
+#ADD target/docker-viz .
+RUN curl -LO "http://s3.amazonaws.com/docker-viz-artifacts/docker-viz"
 
 EXPOSE 4567
 
